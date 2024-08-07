@@ -1,6 +1,6 @@
 # output.yml
 - name: Install Apache and Monitor System Usage
-  hosts: webserver
+  hosts: all
   become: yes
   tasks:
     - name: Install Apache
