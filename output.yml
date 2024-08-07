@@ -1,6 +1,6 @@
 # playbook.yml
 - name: Install Apache and Monitor System Usage
-  hosts: worker
+  hosts: all
   become: yes
   tasks:
     - name: Install Apache
