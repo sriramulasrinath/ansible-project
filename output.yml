@@ -1,6 +1,6 @@
 # output.yml
 - name: Install Apache and Monitor System Usage
-  hosts: all
+  hosts: webserver
   become: yes
   tasks:
     - name: Install Apache
@@ -18,13 +18,25 @@
       shell: "top -bn1 | grep 'Cpu(s)'"
       register: cpu_usage
 
+    - name: Debug CPU usage
+      debug:
+        var: cpu_usage
+
     - name: Collect memory usage
       shell: "free -m"
       register: memory_usage
 
+    - name: Debug Memory usage
+      debug:
+        var: memory_usage
+
     - name: Collect disk usage
       shell: "df -h"
       register: disk_usage
+
+    - name: Debug Disk usage
+      debug:
+        var: disk_usage
 
     - name: Template the output
       template:
