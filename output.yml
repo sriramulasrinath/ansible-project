@@ -1,4 +1,4 @@
-# playbook.yml
+# output.yml
 - name: Install Apache and Monitor System Usage
   hosts: all
   become: yes
@@ -15,15 +15,15 @@
         enabled: yes
 
     - name: Collect CPU usage
-      command: "top -bn1 | grep 'Cpu(s)'"
+      shell: "top -bn1 | grep 'Cpu(s)'"
       register: cpu_usage
 
     - name: Collect memory usage
-      command: "free -m"
+      shell: "free -m"
       register: memory_usage
 
     - name: Collect disk usage
-      command: "df -h"
+      shell: "df -h"
       register: disk_usage
 
     - name: Template the output
