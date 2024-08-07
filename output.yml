@@ -1,0 +1,40 @@
+# playbook.yml
+- name: Install Apache and Monitor System Usage
+  hosts: worker
+  become: yes
+  tasks:
+    - name: Install Apache
+      ansible.builtin.yum:
+        name: httpd
+        state: present
+
+    - name: Start and enable Apache
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: Collect CPU usage
+      command: "top -bn1 | grep 'Cpu(s)'"
+      register: cpu_usage
+
+    - name: Collect memory usage
+      command: "free -m"
+      register: memory_usage
+
+    - name: Collect disk usage
+      command: "df -h"
+      register: disk_usage
+
+    - name: Template the output
+      template:
+        src: usage_template.j2
+        dest: /tmp/system_usage_report.txt
+      vars:
+        cpu: "{{ cpu_usage.stdout }}"
+        memory: "{{ memory_usage.stdout }}"
+        disk: "{{ disk_usage.stdout }}"
+
+    - name: Display the report
+      debug:
+        msg: "{{ lookup('file', '/tmp/system_usage_report.txt') }}"
