@@ -34,6 +34,6 @@
         src: index.html.j2
         dest: index.html
       vars:
-        cpu_usage_value: "{{ cpu_usage.stdout.strip() }}%"
-        ram_usage_value: "{{ ram_usage.stdout.strip() }} MB"
-        disk_usage_value: "{{ disk_usage.stdout.strip() }}"
+        cpu_usage_value: "{{ cpu_usage }}%"
+        ram_usage_value: "{{ ram_usage }} MB"
+        disk_usage_value: "{{ disk_usage }}"
