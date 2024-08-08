@@ -40,7 +40,7 @@
 
     - name: Update index.html with resource usage
       ansible.builtin.template:
-        src: /index.html.j2
+        src: index.html.j2
         dest: /usr/share/nginx/html/index.html
       vars:
         cpu_usage: "{{ cpu_usage_fact }}"
