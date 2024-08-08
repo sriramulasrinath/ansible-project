@@ -32,14 +32,18 @@
           password Jhansi@123
           tls on
           tls_starttls on
-        mode: '0755'  # Set execute permissions for the script
-
-    - name: Ensure /etc/msmtprc has the correct permissions
-      ansible.builtin.file:
-        path: /etc/msmtprc
-        mode: '0755'  # Set execute permissions for the script
+        mode: '0600'  # Set read/write permissions for the owner
         owner: root
         group: root
+
+    - name: Test msmtp configuration
+      command: echo "Test email from msmtp" | msmtp jhansianthoti103@gmail.com
+      register: msmtp_test
+      failed_when: "'msmtp: account default not found' in msmtp_test.stderr"
+
+    - name: Show msmtp test result
+      debug:
+        msg: "{{ msmtp_test.stdout }}"
 
     - name: Copy the monitoring script to target nodes
       ansible.builtin.copy:
