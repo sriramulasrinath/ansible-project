@@ -21,7 +21,7 @@
         mode: '0755'
 
     - name: Execute monitor_usage.sh
-      ansible.builtin.shell: /usr/local/bin/monitor_usage.sh
+      ansible.builtin.shell: /monitor_usage.sh
 
 
     - name: Update index.html with system information
