@@ -1,7 +1,6 @@
-- name: Deploy Nginx and monitor system resources
+- name: Deploy and execute system monitoring script
   hosts: all
   become: yes
-
   tasks:
     - name: Install Nginx
       ansible.builtin.yum:
@@ -14,6 +13,13 @@
         state: started
         enabled: yes
 
+    - name: Install required packages
+      ansible.builtin.yum:
+        name:
+          - bc
+          - mailx  # Use 'mailutils' on Debian/Ubuntu
+        state: present
+
     - name: Copy monitor_usage.sh to remote nodes
       ansible.builtin.copy:
         src: monitor_usage.sh
@@ -21,13 +27,11 @@
         mode: '0755'
 
     - name: Execute monitor_usage.sh
-      ansible.builtin.shell: 
-        src: monitor_usage.sh
+      ansible.builtin.shell: /usr/local/bin/monitor_usage.sh
 
-
-    - name: Update index.html with system information
+    - name: Create HTML file for system information
       ansible.builtin.template:
-        src: index.html.j2
+        src: templates/index.html.j2
         dest: /usr/share/nginx/html/index.html
 
     - name: Ensure index.html is readable
