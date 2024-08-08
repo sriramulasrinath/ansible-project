@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EMAIL="sriramulasrinath.ss@gmail.com"
+EMAIL="jhansianthoti103@gmail.com"
 SUBJECT="System Usage Alert"
 LOGFILE="/var/log/monitor_usage.log"
 
