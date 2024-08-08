@@ -12,6 +12,12 @@
           - "{{ 'mailx' if ansible_distribution_major_version != '9' else 'mailx' if lookup('ansible.builtin.yum', 'mailx', wantlist=True, ignore_errors=True) else 'mailutils' }}"
         state: present
         ignore_errors: yes
+        
+    - name: Install mailutils if mailx installation failed
+      ansible.builtin.yum:
+        name: mailutils
+        state: present
+      when: mailx_install_result.failed
 
     - name: Verify Postfix installation
       ansible.builtin.command:
