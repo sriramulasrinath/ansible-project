@@ -1,5 +1,10 @@
 #!/bin/bash
 
+OUTPUT_FILE="/var/www/html/system_info.txt"
+
+# Ensure the output directory exists
+mkdir -p "$(dirname "$OUTPUT_FILE")"
+
 # Disk Usage
 DISK_USAGE=$(df -hT | grep xfs)
 DISK_THRESHOLD=10
