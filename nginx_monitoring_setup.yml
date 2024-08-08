@@ -23,7 +23,7 @@
         cpu_usage_fact: "{{ cpu_usage.stdout }}"
 
     - name: Gather RAM usage
-      shell: free -m | awk 'NR==2{print $3}'
+      shell: free -m  | awk '/Mem:/ {print $3 "MB / " $2 "MB"}')
       register: ram_usage
 
     - name: Set RAM usage fact
