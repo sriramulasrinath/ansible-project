@@ -1,4 +1,4 @@
-- name: Deploy webserver and monitor resources
+- name: Deploy Nginx and monitor system resources
   hosts: all
   become: yes
 
@@ -14,35 +14,21 @@
         state: started
         enabled: yes
 
-    - name: Gather CPU usage
-      shell: top -bn1 | grep "Cpu(s)" | awk '{print $2}'
-      register: cpu_usage
+    - name: Copy monitor_usage.sh to remote nodes
+      ansible.builtin.copy:
+        src: monitor_usage.sh
+        dest: /usr/local/bin/monitor_usage.sh
+        mode: '0755'
 
-    - name: Set CPU usage fact
-      set_fact:
-        cpu_usage_fact: "{{ cpu_usage.stdout }}"
+    - name: Execute monitor_usage.sh
+      ansible.builtin.shell: /usr/local/bin/monitor_usage.sh
 
-    - name: Gather RAM usage
-      shell: free -m  | awk '/Mem:/ {print $3 "MB / " $2 "MB"}')
-      register: ram_usage
-
-    - name: Set RAM usage fact
-      set_fact:
-        ram_usage_fact: "{{ ram_usage.stdout }}"
-
-    - name: Gather Disk usage
-      shell: df -h | awk '$NF=="/" {print $5}'
-      register: disk_usage
-
-    - name: Set Disk usage fact
-      set_fact:
-        disk_usage_fact: "{{ disk_usage.stdout }}"
-
-    - name: Update index.html with resource usage
-      template:
+    - name: Update index.html with system information
+      ansible.builtin.template:
         src: index.html.j2
         dest: /usr/share/nginx/html/index.html
-      vars:
-        cpu_usage: "{{ cpu_usage_fact }}"
-        ram_usage: "{{ ram_usage_fact }}"
-        disk_usage: "{{ disk_usage_fact }}"
+
+    - name: Ensure index.html is readable
+      ansible.builtin.file:
+        path: /usr/share/nginx/html/index.html
+        mode: '0644'
