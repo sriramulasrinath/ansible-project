@@ -15,7 +15,7 @@
 
     - name: Copy the monitoring script to target nodes
       copy:
-        src: /path/to/local/monitor_usage.sh
+        src: monitor_usage.sh
         dest: /usr/local/bin/monitor_usage.sh
         mode: '0755'
 
