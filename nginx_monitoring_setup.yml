@@ -2,12 +2,23 @@
   hosts: all
   become: yes
   tasks:
+    - name: Update all packages
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+
     - name: Install Postfix and CA certificates
       ansible.builtin.yum:
         name:
           - postfix
           - ca-certificates
         state: present
+      register: install_postfix
+      ignore_errors: yes
+
+    - name: Debug Postfix installation result
+      ansible.builtin.debug:
+        var: install_postfix
 
     - name: Verify Postfix installation
       ansible.builtin.command:
