@@ -1,45 +1,55 @@
 #!/bin/bash
 
+# Configuration
 EMAIL="jhansianthoti103@gmail.com"
-SUBJECT="System Usage Alert"
-LOGFILE="/var/log/monitor_usage.log"
 
-# Create the log file if it doesn't exist
-touch $LOGFILE
-echo "$(date): Monitoring script started" >> $LOGFILE
-
-while true; do
-    CPU_USAGE=$(top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}')
-    MEMORY_USAGE=$(free -m | awk 'NR==2{printf "%.2f", $3*100/$2 }')
-    DISK_USAGE=$(df -h | awk '$NF=="/"{printf "%d", $5}')
-
-    echo "$(date): CPU: $CPU_USAGE, Memory: $MEMORY_USAGE, Disk: $DISK_USAGE" >> $LOGFILE
-
-    THRESHOLD_EXCEEDED=false
-
-    if (( $(echo "$CPU_USAGE > 1" | bc -l) )); then
-        THRESHOLD_EXCEEDED=true
-        CPU_ALERT="CPU Usage: $CPU_USAGE% (Threshold: 1%)"
+# Disk Usage
+DISK_USAGE=$(df -hT | grep xfs)
+DISK_THRESHOLD=10
+DISK_MESSAGE=""
+while IFS= read -r line
+do
+    USAGE=$(echo $line | awk -F " " '{print $6}' | cut -d "%" -f1)
+    FOLDER=$(echo $line | awk -F " " '{print $NF}')
+    if [ $USAGE -ge $DISK_THRESHOLD ]
+    then 
+        DISK_MESSAGE+="$FOLDER is more than $DISK_THRESHOLD%, current usage: $USAGE%\n"
     fi
+done <<< "$DISK_USAGE"
 
-    if (( $(echo "$MEMORY_USAGE > 1" | bc -l) )); then
-        THRESHOLD_EXCEEDED=true
-        MEMORY_ALERT="Memory Usage: $MEMORY_USAGE% (Threshold: 1%)"
+if [ ! -z "$DISK_MESSAGE" ]; then
+    echo -e "Disk Usage Alert:\n$DISK_MESSAGE" | mail -s "Disk Usage Alert" $EMAIL
+fi
+
+# Memory Usage
+MEMORY_USAGE=$(free -mt | grep Total:)
+MEMORY_THRESHOLD=300
+MEMORY_MESSAGE=""
+while IFS= read -r line
+do
+    USAGE=$(echo $line | awk '{print $4}')
+    if [ $USAGE -ge $MEMORY_THRESHOLD ]
+    then
+        MEMORY_MESSAGE+="Memory usage is more than $MEMORY_THRESHOLD MB, current usage: $USAGE MB\n"
+    else
+        MEMORY_MESSAGE+="Memory usage is within limits, current usage: $USAGE MB\n"
     fi
+done <<< "$MEMORY_USAGE"
 
-    if (( $DISK_USAGE > 1 )); then
-        THRESHOLD_EXCEEDED=true
-        DISK_ALERT="Disk Usage: $DISK_USAGE% (Threshold: 1%)"
-    fi
+if [ ! -z "$MEMORY_MESSAGE" ]; then
+    echo -e "Memory Usage Alert:\n$MEMORY_MESSAGE" | mail -s "Memory Usage Alert" $EMAIL
+fi
 
-    if [ "$THRESHOLD_EXCEEDED" = true ]; then
-        BODY="Usage has exceeded the defined threshold.\n\n"
-        [ ! -z "$CPU_ALERT" ] && BODY+="$CPU_ALERT\n"
-        [ ! -z "$MEMORY_ALERT" ] && BODY+="$MEMORY_ALERT\n"
-        [ ! -z "$DISK_ALERT" ] && BODY+="$DISK_ALERT\n"
-        
-        echo -e "$BODY" | mail -s "$SUBJECT" "$EMAIL"
-    fi
+# CPU Usage
+CPU_USAGE=$(top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}')
+CPU_THRESHOLD=80
+CPU_MESSAGE=""
+if (( $(echo "$CPU_USAGE > $CPU_THRESHOLD" | bc -l) )); then
+    CPU_MESSAGE="CPU Usage is more than $CPU_THRESHOLD%, current usage: $CPU_USAGE%\n"
+else
+    CPU_MESSAGE="CPU usage is within limits, current usage: $CPU_USAGE%\n"
+fi
 
-    sleep 1
-done
+if [ ! -z "$CPU_MESSAGE" ]; then
+    echo -e "CPU Usage Alert:\n$CPU_MESSAGE" | mail -s "CPU Usage Alert" $EMAIL
+fi

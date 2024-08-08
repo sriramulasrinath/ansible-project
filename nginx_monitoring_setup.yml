@@ -13,9 +13,11 @@
         state: started
         enabled: yes
 
-    - name: Install msmtp
+    - name: Install required packages
       ansible.builtin.yum:
-        name: msmtp
+        name:
+          - msmtp
+          - mailx
         state: present
 
     - name: Configure msmtp
@@ -31,12 +33,6 @@
           tls on
           tls_starttls on
         mode: '0600'
-
-    - name: Create log directory
-      file:
-        path: /var/log
-        state: directory
-        mode: '0755'
 
     - name: Copy the monitoring script to target nodes
       ansible.builtin.copy:
