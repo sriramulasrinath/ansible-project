@@ -10,17 +10,17 @@ while true; do
     
     THRESHOLD_EXCEEDED=false
 
-    if (( $(echo "$CPU_USAGE > 70" | bc -l) )); then
+    if (( $(echo "$CPU_USAGE > 1" | bc -l) )); then
         THRESHOLD_EXCEEDED=true
         CPU_ALERT="CPU Usage: $CPU_USAGE% (Threshold: 70%)"
     fi
 
-    if (( $(echo "$MEMORY_USAGE > 70" | bc -l) )); then
+    if (( $(echo "$MEMORY_USAGE > 1" | bc -l) )); then
         THRESHOLD_EXCEEDED=true
         MEMORY_ALERT="Memory Usage: $MEMORY_USAGE% (Threshold: 70%)"
     fi
 
-    if (( $DISK_USAGE > 80 )); then
+    if (( $DISK_USAGE > 1 )); then
         THRESHOLD_EXCEEDED=true
         DISK_ALERT="Disk Usage: $DISK_USAGE% (Threshold: 80%)"
     fi
