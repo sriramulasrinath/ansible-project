@@ -10,6 +10,7 @@
           - mailx
           - ca-certificates
         state: present
+        ignore_errors: yes
 
     - name: Verify Postfix installation
       ansible.builtin.command:
