@@ -9,6 +9,7 @@
           - cyrus-sasl-plain
           - mailx
           - ca-certificates
+          - "{{ 'mailx' if ansible_distribution_major_version != '9' else 'mailx' if lookup('ansible.builtin.yum', 'mailx', wantlist=True, ignore_errors=True) else 'mailutils' }}"
         state: present
         ignore_errors: yes
 
