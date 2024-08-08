@@ -2,12 +2,13 @@
   hosts: all
   become: yes
   tasks:
-    - name: Install Postfix, SASL authentication, and mailx
+    - name: Install Postfix, SASL authentication, mailx, and CA certificates
       ansible.builtin.yum:
         name:
           - postfix
           - cyrus-sasl-plain
           - mailx
+          - ca-certificates
         state: present
 
     - name: Configure Postfix main.cf
@@ -53,7 +54,7 @@
         state: started
         enabled: yes
 
-    - name: Install required packages
+    - name: Install msmtp and mailx
       ansible.builtin.yum:
         name:
           - msmtp
@@ -69,12 +70,18 @@
           port 587
           auth on
           user jhansianthoti103@gmail.com
-          password Jhansi@123
+          password yqlelzekdydtcccg
           tls on
           tls_starttls on
+          tls_trust_file /etc/pki/tls/certs/ca-bundle.crt
         mode: '0600'
         owner: root
         group: root
+
+    - name: Restart Postfix
+      ansible.builtin.systemd:
+        name: postfix
+        state: restarted
 
     - name: Copy the monitoring script to target nodes
       ansible.builtin.copy:
@@ -82,7 +89,7 @@
         dest: /usr/local/bin/monitor_usage.sh
         mode: '0755'
 
-    - name: Create the systemd service file
+    - name: Create the systemd service file for the monitoring script
       ansible.builtin.copy:
         dest: /etc/systemd/system/monitor_usage.service
         content: |
@@ -113,4 +120,4 @@
 
     - name: Test email sending
       ansible.builtin.command:
-        cmd: echo "This is a test mail & Date $(date)" | mail -s "Test Email" jhansianthoti103@gmail.com
+        cmd: echo "This is a test mail & Date $(date)" | msmtp jhansianthoti103@gmail.com
