@@ -1,0 +1,48 @@
+- name: Install Nginx and Set Up Monitoring for System Usage
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Nginx
+      ansible.builtin.yum:
+        name: nginx
+        state: present
+
+    - name: Start and enable Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Copy the monitoring script to target nodes
+      copy:
+        src: /path/to/local/monitor_usage.sh
+        dest: /usr/local/bin/monitor_usage.sh
+        mode: '0755'
+
+    - name: Create the systemd service file
+      copy:
+        dest: /etc/systemd/system/monitor_usage.service
+        content: |
+          [Unit]
+          Description=Monitor System Usage
+
+          [Service]
+          ExecStart=/usr/local/bin/monitor_usage.sh
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd manager configuration
+      command: systemctl daemon-reload
+
+    - name: Enable the monitoring service to start on boot
+      systemd:
+        name: monitor_usage
+        enabled: yes
+        state: started
+
+    - name: Start the monitoring service
+      systemd:
+        name: monitor_usage
+        state: started
