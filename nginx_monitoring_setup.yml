@@ -14,6 +14,12 @@
         state: started
         enabled: yes
 
+    - name: Create directory for HTML files
+      ansible.builtin.file:
+        path: /var/www/html
+        state: directory
+        mode: '0755'
+
     - name: Gather CPU usage
       ansible.builtin.shell: top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'
       register: cpu_usage
