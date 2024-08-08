@@ -42,7 +42,7 @@
 
     - name: Create HTML file with system information
       template:
-        src: templates/index.html.j2
+        src: index.html.j2
         dest: /var/www/html/index.html
       vars:
         cpu_usage: "{{ cpu_usage.stdout }}%"
