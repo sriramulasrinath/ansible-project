@@ -32,12 +32,12 @@
           password your-password-here
           tls on
           tls_starttls on
-        mode: '0600'  # Set permissions to rw------- to restrict access
+        mode: '0755'  # Set execute permissions for the script
 
     - name: Ensure /etc/msmtprc has the correct permissions
       ansible.builtin.file:
         path: /etc/msmtprc
-        mode: '0600'  # Ensure file permissions are rw-------
+        mode: '0755'  # Set execute permissions for the script
         owner: root
         group: root
 
