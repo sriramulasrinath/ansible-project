@@ -18,19 +18,31 @@
       shell: top -bn1 | grep "Cpu(s)" | awk '{print $2}'
       register: cpu_usage
 
+    - name: Set CPU usage fact
+      set_fact:
+        cpu_usage_fact: "{{ cpu_usage.stdout }}"
+
     - name: Gather RAM usage
       shell: free -m | awk 'NR==2{print $3}'
       register: ram_usage
 
+    - name: Set RAM usage fact
+      set_fact:
+        ram_usage_fact: "{{ ram_usage.stdout }}"
+
     - name: Gather Disk usage
       shell: df -h | awk '$NF=="/" {print $5}'
       register: disk_usage
+
+    - name: Set Disk usage fact
+      set_fact:
+        disk_usage_fact: "{{ disk_usage.stdout }}"
 
     - name: Update index.html with resource usage
       template:
         src: index.html.j2
         dest: /usr/share/nginx/html/index.html
       vars:
-        cpu_usage: "{{ cpu_usage.stdout }}"
-        ram_usage: "{{ ram_usage.stdout }}"
-        disk_usage: "{{ disk_usage.stdout }}"
+        cpu_usage: "{{ cpu_usage_fact }}"
+        ram_usage: "{{ ram_usage_fact }}"
+        disk_usage: "{{ disk_usage_fact }}"
