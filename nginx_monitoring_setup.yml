@@ -11,6 +11,15 @@
           - ca-certificates
         state: present
 
+    - name: Verify Postfix installation
+      ansible.builtin.command:
+        cmd: rpm -q postfix
+      register: postfix_check
+
+    - name: Debug Postfix installation
+      ansible.builtin.debug:
+        msg: "{{ postfix_check.stdout }}"
+
     - name: Configure Postfix main.cf
       ansible.builtin.lineinfile:
         path: /etc/postfix/main.cf
@@ -24,6 +33,15 @@
         - smtp_sasl_security_options = noanonymous
         - smtp_sasl_tls_security_options = noanonymous
 
+    - name: Verify main.cf configuration
+      ansible.builtin.command:
+        cmd: cat /etc/postfix/main.cf
+      register: maincf_check
+
+    - name: Debug main.cf configuration
+      ansible.builtin.debug:
+        msg: "{{ maincf_check.stdout }}"
+
     - name: Configure Postfix SASL credentials
       ansible.builtin.copy:
         dest: /etc/postfix/sasl_passwd
@@ -33,9 +51,27 @@
         owner: root
         group: root
 
+    - name: Verify SASL credentials file
+      ansible.builtin.stat:
+        path: /etc/postfix/sasl_passwd
+      register: sasl_passwd_check
+
+    - name: Debug SASL credentials file
+      ansible.builtin.debug:
+        msg: "SASL credentials file exists: {{ sasl_passwd_check.stat.exists }}"
+
     - name: Create Postfix lookup table
       ansible.builtin.command:
         cmd: postmap /etc/postfix/sasl_passwd
+
+    - name: Verify lookup table
+      ansible.builtin.stat:
+        path: /etc/postfix/sasl_passwd.db
+      register: sasl_passwd_db_check
+
+    - name: Debug lookup table
+      ansible.builtin.debug:
+        msg: "SASL credentials DB file exists: {{ sasl_passwd_db_check.stat.exists }}"
 
     - name: Start and enable Postfix
       ansible.builtin.systemd:
