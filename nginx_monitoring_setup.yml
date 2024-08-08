@@ -1,40 +1,55 @@
-- name: Deploy and execute system monitoring script
+---
+- name: Install Nginx and Monitor System Resources
   hosts: all
   become: yes
   tasks:
-    - name: Install Nginx
-      ansible.builtin.yum:
+
+    - name: Install Nginx on Debian/Ubuntu
+      apt:
         name: nginx
         state: present
+      when: ansible_os_family == "Debian"
 
-    - name: Start Nginx
-      ansible.builtin.systemd:
+    - name: Install Nginx on RedHat/CentOS
+      dnf:
+        name: nginx
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Ensure Nginx is started and enabled
+      systemd:
         name: nginx
         state: started
         enabled: yes
 
-    - name: Install required packages
-      ansible.builtin.yum:
-        name:
-          - bc
-          - mailx  # Use 'mailutils' on Debian/Ubuntu
-        state: present
+    - name: Gather CPU usage
+      shell: |
+        if command -v bc &> /dev/null; then
+          CPU_USAGE=$(top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}')
+        else
+          CPU_USAGE=$(top -bn1 | grep 'Cpu(s)' | awk '{print $2}')
+        fi
+        echo $CPU_USAGE
+      register: cpu_usage
 
-    - name: Copy monitor_usage.sh to remote nodes
-      ansible.builtin.copy:
-        src: monitor_usage.sh
-        dest: /usr/local/bin/monitor_usage.sh
-        mode: '0755'
+    - name: Gather RAM usage
+      shell: free -m | awk 'NR==2{print $3}'
+      register: ram_usage
 
-    - name: Execute monitor_usage.sh
-      ansible.builtin.shell: /usr/local/bin/monitor_usage.sh
+    - name: Gather Disk usage
+      shell: df -h | awk '$NF=="/" {print $5}'
+      register: disk_usage
 
-    - name: Create HTML file for system information
-      ansible.builtin.template:
+    - name: Create HTML file with system information
+      template:
         src: templates/index.html.j2
-        dest: /usr/share/nginx/html/index.html
+        dest: /var/www/html/index.html
+      vars:
+        cpu_usage: "{{ cpu_usage.stdout }}%"
+        ram_usage: "{{ ram_usage.stdout }} MB"
+        disk_usage: "{{ disk_usage.stdout }}"
 
-    - name: Ensure index.html is readable
-      ansible.builtin.file:
-        path: /usr/share/nginx/html/index.html
-        mode: '0644'
+    - name: Restart Nginx to apply changes
+      systemd:
+        name: nginx
+        state: restarted
