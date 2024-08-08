@@ -7,21 +7,9 @@
         name:
           - postfix
           - cyrus-sasl-plain
+          - mailx
           - ca-certificates
         state: present
-
-    - name: Install mailx or mailutils
-      ansible.builtin.yum:
-        name: "{{ 'mailx' if ansible_distribution_major_version != '9' else 'mailutils' }}"
-        state: present
-      ignore_errors: yes
-      register: mailx_install_result
-
-    - name: Install mailutils if mailx installation failed
-      ansible.builtin.yum:
-        name: mailutils
-        state: present
-      when: mailx_install_result.failed
 
     - name: Verify Postfix installation
       ansible.builtin.command:
@@ -45,6 +33,15 @@
         - smtp_sasl_security_options = noanonymous
         - smtp_sasl_tls_security_options = noanonymous
 
+    - name: Verify main.cf configuration
+      ansible.builtin.command:
+        cmd: cat /etc/postfix/main.cf
+      register: maincf_check
+
+    - name: Debug main.cf configuration
+      ansible.builtin.debug:
+        msg: "{{ maincf_check.stdout }}"
+
     - name: Configure Postfix SASL credentials
       ansible.builtin.copy:
         dest: /etc/postfix/sasl_passwd
@@ -54,9 +51,27 @@
         owner: root
         group: root
 
+    - name: Verify SASL credentials file
+      ansible.builtin.stat:
+        path: /etc/postfix/sasl_passwd
+      register: sasl_passwd_check
+
+    - name: Debug SASL credentials file
+      ansible.builtin.debug:
+        msg: "SASL credentials file exists: {{ sasl_passwd_check.stat.exists }}"
+
     - name: Create Postfix lookup table
       ansible.builtin.command:
         cmd: postmap /etc/postfix/sasl_passwd
+
+    - name: Verify lookup table
+      ansible.builtin.stat:
+        path: /etc/postfix/sasl_passwd.db
+      register: sasl_passwd_db_check
+
+    - name: Debug lookup table
+      ansible.builtin.debug:
+        msg: "SASL credentials DB file exists: {{ sasl_passwd_db_check.stat.exists }}"
 
     - name: Start and enable Postfix
       ansible.builtin.systemd:
@@ -77,7 +92,9 @@
 
     - name: Install msmtp and mailx
       ansible.builtin.yum:
-        name: msmtp
+        name:
+          - msmtp
+          - mailx
         state: present
 
     - name: Configure msmtp
@@ -140,3 +157,4 @@
     - name: Test email sending
       ansible.builtin.command:
         cmd: echo "This is a test mail & Date $(date)" | msmtp jhansianthoti103@gmail.com
+
