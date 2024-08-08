@@ -28,17 +28,24 @@
           host smtp.gmail.com
           port 587
           auth on
-          user jhansianthoti103@gmail.com
-          password Jhansi@123
+          user sriramulasrinath59@gmail.com
+          password your-password-here
           tls on
           tls_starttls on
-        mode: '0600'
+        mode: '0600'  # Set permissions to rw------- to restrict access
+
+    - name: Ensure /etc/msmtprc has the correct permissions
+      ansible.builtin.file:
+        path: /etc/msmtprc
+        mode: '0600'  # Ensure file permissions are rw-------
+        owner: root
+        group: root
 
     - name: Copy the monitoring script to target nodes
       ansible.builtin.copy:
         src: monitor_usage.sh
         dest: /usr/local/bin/monitor_usage.sh
-        mode: '0755'
+        mode: '0755'  # Set execute permissions for the script
 
     - name: Create the systemd service file
       ansible.builtin.copy:
