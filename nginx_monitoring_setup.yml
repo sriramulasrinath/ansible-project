@@ -1,39 +1,40 @@
-- name: Deploy Nginx and Monitor Resources
-  hosts: all
-  become: yes
-  tasks:
-
-    - name: Install Nginx
-      ansible.builtin.yum:
-        name: nginx
-        state: present
-
-    - name: Start and enable Nginx
-      ansible.builtin.systemd:
-        name: nginx
-        state: started
-        enabled: yes
-
-    - name: Gather CPU usage
-      ansible.builtin.shell: top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'
-      register: cpu_usage
-      changed_when: false
-
-    - name: Gather RAM usage
-      ansible.builtin.shell: free -m | awk 'NR==2{print $3}'
-      register: ram_usage
-      changed_when: false
-
-    - name: Gather Disk usage
-      ansible.builtin.shell: df -h | awk '$NF=="/" {print $5}'
-      register: disk_usage
-      changed_when: false
-
-    - name: Create HTML report
-      ansible.builtin.template:
-        src: index.html.j2
-        dest: index.html
-      vars:
-        cpu_usage_value: "{{ cpu_usage }}%"
-        ram_usage_value: "{{ ram_usage }} MB"
-        disk_usage_value: "{{ disk_usage }}"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>System Information</h1>
+        <p><strong>CPU Usage:</strong> {{ cpu_usage_value }}</p>
+        <p><strong>RAM Usage:</strong> {{ ram_usage_value }}</p>
+        <p><strong>Disk Usage:</strong> {{ disk_usage_value }}</p>
+    </div>
+</body>
+</html>
