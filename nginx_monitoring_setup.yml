@@ -32,7 +32,7 @@
     - name: Create HTML report
       ansible.builtin.template:
         src: index.html.j2
-        dest: index.html
+        dest: /var/www/html/index.html
       vars:
         cpu_usage_value: "{{ cpu_usage.stdout.strip() }}%"
         ram_usage_value: "{{ ram_usage.stdout.strip() }} MB"
