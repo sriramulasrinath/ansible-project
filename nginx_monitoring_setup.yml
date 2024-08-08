@@ -36,8 +36,8 @@
 
     - name: Create HTML file with system information
       template:
-        src: templates/index.html.j2
-        dest: /var/www/html/index.html
+        src: index.html.j2
+        dest: index.html.j2
       vars:
         cpu_usage: "{{ cpu_usage.stdout }}%"
         ram_usage: "{{ ram_usage.stdout }} MB"
