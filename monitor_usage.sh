@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-EMAIL="sriramulasrinath.ss@gmail.com"
+EMAIL="jhansianthoti103@gmail.com"
 
 # Disk Usage
 DISK_USAGE=$(df -hT | grep xfs)

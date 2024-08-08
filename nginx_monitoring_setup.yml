@@ -27,7 +27,7 @@
       ansible.builtin.copy:
         dest: /etc/postfix/sasl_passwd
         content: |
-          [smtp.gmail.com]:587 jhansianthoti103@gmail.com:Jhansi@123
+          [smtp.gmail.com]:587 jhansianthoti103@gmail.com:yqlelzekdydtcccg
         mode: '0600'
         owner: root
         group: root
@@ -113,4 +113,4 @@
 
     - name: Test email sending
       ansible.builtin.command:
-        cmd: echo "This is a test mail & Date $(date)" | mail -s "Test Email" sriramulasrinath.ss@gmail.com
+        cmd: echo "This is a test mail & Date $(date)" | mail -s "Test Email" jhansianthoti103@gmail.com
