@@ -13,14 +13,29 @@
         state: started
         enabled: yes
 
+    - name: Install ssmtp
+      ansible.builtin.yum:
+        name: ssmtp
+        state: present
+
+    - name: Configure ssmtp
+      ansible.builtin.copy:
+        dest: /etc/ssmtp/ssmtp.conf
+        content: |
+          root=jhansianthoti103@gmail.com
+          mailhub=smtp.gmail.com:587
+          AuthUser=jhansianthoti103@gmail.com
+          AuthPass=Jhansi@123
+          UseSTARTTLS=YES
+
     - name: Copy the monitoring script to target nodes
-      copy:
+      ansible.builtin.copy:
         src: monitor_usage.sh
         dest: /usr/local/bin/monitor_usage.sh
         mode: '0755'
 
     - name: Create the systemd service file
-      copy:
+      ansible.builtin.copy:
         dest: /etc/systemd/system/monitor_usage.service
         content: |
           [Unit]
@@ -34,15 +49,16 @@
           WantedBy=multi-user.target
 
     - name: Reload systemd manager configuration
-      command: systemctl daemon-reload
+      ansible.builtin.command:
+        cmd: systemctl daemon-reload
 
     - name: Enable the monitoring service to start on boot
-      systemd:
+      ansible.builtin.systemd:
         name: monitor_usage
         enabled: yes
         state: started
 
     - name: Start the monitoring service
-      systemd:
+      ansible.builtin.systemd:
         name: monitor_usage
         state: started
