@@ -13,20 +13,30 @@
         state: started
         enabled: yes
 
-    - name: Install ssmtp
+    - name: Install msmtp
       ansible.builtin.yum:
-        name: ssmtp
+        name: msmtp
         state: present
 
-    - name: Configure ssmtp
+    - name: Configure msmtp
       ansible.builtin.copy:
-        dest: /etc/ssmtp/ssmtp.conf
+        dest: /etc/msmtprc
         content: |
-          root=jhansianthoti103@gmail.com
-          mailhub=smtp.gmail.com:587
-          AuthUser=jhansianthoti103@gmail.com
-          AuthPass=Jhansi@123
-          UseSTARTTLS=YES
+          account default
+          host smtp.gmail.com
+          port 587
+          auth on
+          user jhansianthoti103@gmail.com
+          password Jhansi@123
+          tls on
+          tls_starttls on
+        mode: '0600'
+
+    - name: Create log directory
+      file:
+        path: /var/log
+        state: directory
+        mode: '0755'
 
     - name: Copy the monitoring script to target nodes
       ansible.builtin.copy:
