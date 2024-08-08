@@ -23,13 +23,7 @@
         enabled: yes
 
     - name: Gather CPU usage
-      shell: |
-        if command -v bc &> /dev/null; then
-          CPU_USAGE=$(top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}')
-        else
-          CPU_USAGE=$(top -bn1 | grep 'Cpu(s)' | awk '{print $2}')
-        fi
-        echo $CPU_USAGE
+      shell: top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'
       register: cpu_usage
 
     - name: Gather RAM usage
@@ -42,8 +36,8 @@
 
     - name: Create HTML file with system information
       template:
-        src: index.html.j2
-        dest: index.html.j2
+        src: templates/index.html.j2
+        dest: /var/www/html/index.html
       vars:
         cpu_usage: "{{ cpu_usage.stdout }}%"
         ram_usage: "{{ ram_usage.stdout }} MB"

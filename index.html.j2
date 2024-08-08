@@ -1,40 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Information</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f0f0;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        p {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>System Information</h1>
-        <p><strong>CPU Usage:</strong> {{ cpu_usage }}</p>
-        <p><strong>RAM Usage:</strong> {{ ram_usage }}</p>
-        <p><strong>Disk Usage:</strong> {{ disk_usage }}</p>
-    </div>
-</body>
-</html>
+---
+- name: Install Nginx and Monitor System Resources
+  hosts: all
+  become: yes
+  tasks:
+
+    - name: Install Nginx on Debian/Ubuntu
+      apt:
+        name: nginx
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Nginx on RedHat/CentOS
+      dnf:
+        name: nginx
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Ensure Nginx is started and enabled
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Gather CPU usage
+      shell: top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'
+      register: cpu_usage
+
+    - name: Gather RAM usage
+      shell: free -m | awk 'NR==2{print $3}'
+      register: ram_usage
+
+    - name: Gather Disk usage
+      shell: df -h | awk '$NF=="/" {print $5}'
+      register: disk_usage
+
+    - name: Create HTML file with system information
+      template:
+        src: templates/index.html.j2
+        dest: /var/www/html/index.html
+      vars:
+        cpu_usage: "{{ cpu_usage.stdout }}%"
+        ram_usage: "{{ ram_usage.stdout }} MB"
+        disk_usage: "{{ disk_usage.stdout }}"
+
+    - name: Restart Nginx to apply changes
+      systemd:
+        name: nginx
+        state: restarted
