@@ -1,49 +1,39 @@
----
-- name: Install Nginx and Monitor System Resources
+- name: Deploy Nginx and Monitor Resources
   hosts: all
   become: yes
   tasks:
 
-    - name: Install Nginx on Debian/Ubuntu
-      apt:
+    - name: Install Nginx
+      ansible.builtin.yum:
         name: nginx
         state: present
-      when: ansible_os_family == "Debian"
 
-    - name: Install Nginx on RedHat/CentOS
-      dnf:
-        name: nginx
-        state: present
-      when: ansible_os_family == "RedHat"
-
-    - name: Ensure Nginx is started and enabled
-      systemd:
+    - name: Start and enable Nginx
+      ansible.builtin.systemd:
         name: nginx
         state: started
         enabled: yes
 
     - name: Gather CPU usage
-      shell: top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'
+      ansible.builtin.shell: top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'
       register: cpu_usage
+      changed_when: false
 
     - name: Gather RAM usage
-      shell: free -m | awk 'NR==2{print $3}'
+      ansible.builtin.shell: free -m | awk 'NR==2{print $3}'
       register: ram_usage
+      changed_when: false
 
     - name: Gather Disk usage
-      shell: df -h | awk '$NF=="/" {print $5}'
+      ansible.builtin.shell: df -h | awk '$NF=="/" {print $5}'
       register: disk_usage
+      changed_when: false
 
-    - name: Create HTML file with system information
-      template:
+    - name: Create HTML report
+      ansible.builtin.template:
         src: index.html.j2
         dest: index.html
       vars:
-        cpu_usage: "{{ cpu_usage.stdout }}%"
-        ram_usage: "{{ ram_usage.stdout }} MB"
-        disk_usage: "{{ disk_usage.stdout }}"
-
-    - name: Restart Nginx to apply changes
-      systemd:
-        name: nginx
-        state: restarted
+        cpu_usage_value: "{{ cpu_usage.stdout.strip() }}%"
+        ram_usage_value: "{{ ram_usage.stdout.strip() }} MB"
+        disk_usage_value: "{{ disk_usage.stdout.strip() }}"
