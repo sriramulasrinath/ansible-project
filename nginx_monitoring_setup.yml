@@ -15,34 +15,22 @@
         enabled: yes
 
     - name: Gather CPU usage
-      ansible.builtin.shell: top -bn1 | grep "Cpu(s)" | awk '{print $2}'
+      shell: top -bn1 | grep "Cpu(s)" | awk '{print $2}'
       register: cpu_usage
 
-    - name: Set CPU usage fact
-      ansible.builtin.set_fact:
-        cpu_usage_fact: "{{ cpu_usage.stdout }}"
-
     - name: Gather RAM usage
-      ansible.builtin.shell: free -m | awk 'NR==2{print $3}'
+      shell: free -m | awk 'NR==2{print $3}'
       register: ram_usage
 
-    - name: Set RAM usage fact
-      ansible.builtin.set_fact:
-        ram_usage_fact: "{{ ram_usage.stdout }}"
-
     - name: Gather Disk usage
-      ansible.builtin.shell: df -h | awk '$NF=="/" {print $5}'
+      shell: df -h | awk '$NF=="/" {print $5}'
       register: disk_usage
 
-    - name: Set Disk usage fact
-      ansible.builtin.set_fact:
-        disk_usage_fact: "{{ disk_usage.stdout }}"
-
     - name: Update index.html with resource usage
-      ansible.builtin.template:
-        src: index.html.j2
+      template:
+        src: templates/index.html.j2
         dest: /usr/share/nginx/html/index.html
       vars:
-        cpu_usage: "{{ cpu_usage_fact }}"
-        ram_usage: "{{ ram_usage_fact }}"
-        disk_usage: "{{ disk_usage_fact }}"
+        cpu_usage: "{{ cpu_usage.stdout }}"
+        ram_usage: "{{ ram_usage.stdout }}"
+        disk_usage: "{{ disk_usage.stdout }}"
