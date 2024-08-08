@@ -6,12 +6,13 @@ LOGFILE="/var/log/monitor_usage.log"
 
 # Create the log file if it doesn't exist
 touch $LOGFILE
+echo "$(date): Monitoring script started" >> $LOGFILE
 
 while true; do
     CPU_USAGE=$(top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}')
     MEMORY_USAGE=$(free -m | awk 'NR==2{printf "%.2f", $3*100/$2 }')
     DISK_USAGE=$(df -h | awk '$NF=="/"{printf "%d", $5}')
-    
+
     echo "$(date): CPU: $CPU_USAGE, Memory: $MEMORY_USAGE, Disk: $DISK_USAGE" >> $LOGFILE
 
     THRESHOLD_EXCEEDED=false
